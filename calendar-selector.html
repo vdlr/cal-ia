@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario Noviembre 2024</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: top;
+
+            min-height: 100vh;
+            margin: 20 0 0 0;
+            background-color: #f0f0f0;
+        }
+        .calendar {
+            background-color: white;
+            border: 7px solid #333;  /* Thick border */
+            border-radius: 20px;  /* Rounded corners */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 90vw;
+            height: fit-content;
+            max-width: 800px;
+        }
+        .monthselector {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        .monthselector select {
+            padding: 5px;
+            font-size: 16px;
+        }
+        .month {
+            background-color: #f8f8f8;
+            color: #333;
+            font-size: 5vw;
+            font-weight: bold;
+            padding: 10px;
+            text-align: center;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            text-align: center;
+            width: 14.28%; /* 100% / 7 days */
+            position: relative;
+            font-size: 2.5vw;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: normal;
+            padding: 0 0 0px 0;
+        }
+        td::after {
+            content: '';
+            display: block;
+            margin-top: 100%;
+        }
+        td .content {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            padding: 0 0 10px 0;
+        }
+        .weekend {
+            color: rgb(172, 68, 68);
+            font-style: italic;
+        }
+        @media print {
+            .noprint {
+                display: none;
+                visibility: hidden;
+            }
+        }
+        @media (min-width: 400px) {
+            
+            th, td {
+                font-size: 55px;
+            }
+            .day {
+                font-size: 15px;
+            }
+            .month {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar">
+        <div class="month" id="title">Noviembre 2024</div>
+        <table>
+            <tr>
+                <th class="day">Lunes</th>
+                <th class="day">Martes</th>
+                <th class="day">Miércoles</th>
+                <th class="day">Jueves</th>
+                <th class="day">Viernes</th>
+                <th class="day weekend">Sábado</th>
+                <th class="day weekend">Domingo</th>
+            </tr>
+            <tbody id="calendarBody"></tbody>
+        </table>
+        
+    </div>
+    <div class="monthselector noprint">
+            <select id="monthSelect" class="noprint"></select>
+            <select id="yearSelect" class="noprint"></select>
+        </div>
+    <script>
+        const months = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+
+        // Initialize selectors
+        function initializeSelectors() {
+            const monthSelect = document.getElementById('monthSelect');
+            const yearSelect = document.getElementById('yearSelect');
+            
+            // Add months
+            months.forEach((month, index) => {
+                const option = new Option(month, index);
+                monthSelect.add(option);
+            });
+
+            // Add years (current year ± 5 years)
+            const currentYear = new Date().getFullYear();
+            for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+                const option = new Option(year, year);
+                yearSelect.add(option);
+            }
+
+            // Set current month and year
+            const currentDate = new Date();
+            monthSelect.value = currentDate.getMonth();
+            yearSelect.value = currentDate.getFullYear();
+
+            // Add event listeners
+            monthSelect.addEventListener('change', updateCalendar);
+            yearSelect.addEventListener('change', updateCalendar);
+
+            // Initial calendar update
+            updateCalendar();
+        }
+
+        function updateCalendar() {
+            const title = document.getElementById('title');
+            
+            const monthSelect = document.getElementById('monthSelect');
+            const yearSelect = document.getElementById('yearSelect');
+            const month = parseInt(monthSelect.value);
+            const year = parseInt(yearSelect.value);
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+
+            title.innerHTML = months[month] + ' ' + year;
+
+            // Get day of week for the first day (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+            let firstDayOfWeek = firstDay.getDay();
+            // Adjust for Monday as first day of week
+            firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+
+            const calendarBody = document.getElementById('calendarBody');
+            calendarBody.innerHTML = '';
+
+            let date = 1;
+            let html = '';
+
+            // Create calendar rows
+            for (let i = 0; i < 6; i++) {
+                html += '<tr>';
+                for (let j = 0; j < 7; j++) {
+                    const isWeekend = j >= 5;
+                    if (i === 0 && j < firstDayOfWeek) {
+                        // Empty cells before first day
+                        html += `<td${isWeekend ? ' class="weekend"' : ''}><div class="content"></div></td>`;
+                    } else if (date > daysInMonth) {
+                        // Empty cells after last day
+                        html += `<td${isWeekend ? ' class="weekend"' : ''}><div class="content"></div></td>`;
+                    } else {
+                        html += `<td${isWeekend ? ' class="weekend"' : ''}><div class="content">${date}</div></td>`;
+                        date++;
+                    }
+                }
+                html += '</tr>';
+                if (date > daysInMonth) {
+                    break;
+                }
+            }
+
+            calendarBody.innerHTML = html;
+        }
+
+        // Initialize the calendar when the page loads
+        initializeSelectors();
+    </script>
+</body>
+</html>

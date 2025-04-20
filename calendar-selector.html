@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendario Noviembre 2024</title>
+    <title>Calendario</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
+            flex-direction: column;
             justify-content: center;
-            align-items: top;
+            align-items: center;
 
             min-height: 100vh;
             margin: 20 0 0 0;
@@ -24,6 +25,7 @@
             width: 90vw;
             height: fit-content;
             max-width: 800px;
+            margin:20px
         }
         .monthselector {
             text-align: center;
@@ -86,6 +88,9 @@
                 display: none;
                 visibility: hidden;
             }
+            .printmargin {
+                margin: 20;
+            }
         }
         @media (min-width: 400px) {
             
@@ -103,7 +108,7 @@
 </head>
 <body>
     <div class="calendar">
-        <div class="month" id="title">Noviembre 2024</div>
+        <div class="month" id="title1">Noviembre 2024</div>
         <table>
             <tr>
                 <th class="day">Lunes</th>
@@ -114,14 +119,31 @@
                 <th class="day weekend">Sábado</th>
                 <th class="day weekend">Domingo</th>
             </tr>
-            <tbody id="calendarBody"></tbody>
+            <tbody id="calendarBody1"></tbody>
         </table>
         
     </div>
     <div class="monthselector noprint">
-            <select id="monthSelect" class="noprint"></select>
-            <select id="yearSelect" class="noprint"></select>
-        </div>
+        <select id="monthSelect" class="noprint"></select>
+        <select id="yearSelect" class="noprint"></select>
+    </div>
+    <div class="calendar">
+        <div class="month" id="title2">Noviembre 2024</div>
+        <table>
+            <tr>
+                <th class="day">Lunes</th>
+                <th class="day">Martes</th>
+                <th class="day">Miércoles</th>
+                <th class="day">Jueves</th>
+                <th class="day">Viernes</th>
+                <th class="day weekend">Sábado</th>
+                <th class="day weekend">Domingo</th>
+            </tr>
+            <tbody id="calendarBody2"></tbody>
+        </table>
+        
+    </div>
+    
     <script>
         const months = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -155,22 +177,32 @@
             monthSelect.addEventListener('change', updateCalendar);
             yearSelect.addEventListener('change', updateCalendar);
 
-            // Initial calendar update
+            console.log('updateCalendar ' + monthSelect + ': ' + yearSelect);
             updateCalendar();
+            
+          
         }
 
         function updateCalendar() {
-            const title = document.getElementById('title');
-            
             const monthSelect = document.getElementById('monthSelect');
             const yearSelect = document.getElementById('yearSelect');
             const month = parseInt(monthSelect.value);
-            const year = parseInt(yearSelect.value);
+            const year = parseInt(yearSelect.value); 
+            console.log('updateCalendar ' + month + ': ' + year);
+           // Initial calendar update
+           updateCalendarn('1', month, year);
+            updateCalendarn('2', month + 1, year);
+        }
+
+        function updateCalendarn(n, month, year) {
+            const title = document.getElementById('title' + n);
+            console.log('title' + n + ': ' + title);
+            
 
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const daysInMonth = lastDay.getDate();
-
+            console.log('month ' +months[month]);
             title.innerHTML = months[month] + ' ' + year;
 
             // Get day of week for the first day (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
@@ -178,7 +210,7 @@
             // Adjust for Monday as first day of week
             firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
-            const calendarBody = document.getElementById('calendarBody');
+            const calendarBody = document.getElementById('calendarBody' + n);
             calendarBody.innerHTML = '';
 
             let date = 1;

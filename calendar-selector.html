@@ -16,6 +16,13 @@
             margin: 20 0 0 0;
             background-color: #f0f0f0;
         }
+        .calendar-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+        }
         .calendar {
             background-color: white;
             border: 7px solid #333;  /* Thick border */
@@ -25,7 +32,23 @@
             width: 90vw;
             height: fit-content;
             max-width: 800px;
-            margin:20px
+            margin: 20px;
+            box-sizing: border-box;
+        }
+        /* Styles for different month layouts */
+        .months-1 .calendar {
+            width: 90%;
+        }
+        .months-2 .calendar {
+            width: 45%;
+        }
+        .months-6 .calendar {
+            width: 30%;
+            margin: 10px;
+        }
+        .months-12 .calendar {
+            width: 22%;
+            margin: 5px;
         }
         .monthselector {
             text-align: center;
@@ -39,6 +62,30 @@
         .monthselector select {
             padding: 5px;
             font-size: 16px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+        }
+        .monthselector label {
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        .layout-buttons {
+            display: flex;
+            gap: 10px;
+            margin-left: 10px;
+        }
+        .layout-button {
+            padding: 5px 10px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        .layout-button.active {
+            background-color: #e0e0e0;
+            font-weight: bold;
         }
         .month {
             background-color: #f8f8f8;
@@ -47,6 +94,14 @@
             font-weight: bold;
             padding: 10px;
             text-align: center;
+        }
+        .months-6 .month {
+            font-size: 3vw;
+            padding: 5px;
+        }
+        .months-12 .month {
+            font-size: 2vw;
+            padding: 3px;
         }
         table {
             border-collapse: collapse;
@@ -58,6 +113,12 @@
             width: 14.28%; /* 100% / 7 days */
             position: relative;
             font-size: 2.5vw;
+        }
+        .months-6 th, .months-6 td {
+            font-size: 1.8vw;
+        }
+        .months-12 th, .months-12 td {
+            font-size: 1.2vw;
         }
         th {
             background-color: #f0f0f0;
@@ -93,9 +154,8 @@
             }
         }
         @media (min-width: 400px) {
-            
             th, td {
-                font-size: 55px;
+                font-size: 24px;
             }
             .day {
                 font-size: 15px;
@@ -103,45 +163,46 @@
             .month {
                 font-size: 20px;
             }
+            .months-6 th, .months-6 td {
+                font-size: 16px;
+            }
+            .months-6 .day {
+                font-size: 12px;
+            }
+            .months-6 .month {
+                font-size: 16px;
+            }
+            .months-12 th, .months-12 td {
+                font-size: 12px;
+            }
+            .months-12 .day {
+                font-size: 10px;
+            }
+            .months-12 .month {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="calendar">
-        <div class="month" id="title1">Noviembre 2024</div>
-        <table>
-            <tr>
-                <th class="day">Lunes</th>
-                <th class="day">Martes</th>
-                <th class="day">Miércoles</th>
-                <th class="day">Jueves</th>
-                <th class="day">Viernes</th>
-                <th class="day weekend">Sábado</th>
-                <th class="day weekend">Domingo</th>
-            </tr>
-            <tbody id="calendarBody1"></tbody>
-        </table>
-        
-    </div>
     <div class="monthselector noprint">
+        <label for="monthSelect">Mes:</label>
         <select id="monthSelect" class="noprint"></select>
-        <select id="yearSelect" class="noprint"></select>
-    </div>
-    <div class="calendar">
-        <div class="month" id="title2">Noviembre 2024</div>
-        <table>
-            <tr>
-                <th class="day">Lunes</th>
-                <th class="day">Martes</th>
-                <th class="day">Miércoles</th>
-                <th class="day">Jueves</th>
-                <th class="day">Viernes</th>
-                <th class="day weekend">Sábado</th>
-                <th class="day weekend">Domingo</th>
-            </tr>
-            <tbody id="calendarBody2"></tbody>
-        </table>
         
+        <label for="yearSelect">Año:</label>
+        <select id="yearSelect" class="noprint"></select>
+        
+        <span>Mostrar:</span>
+        <div class="layout-buttons">
+            <div class="layout-button" data-months="1">1 mes</div>
+            <div class="layout-button active" data-months="2">2 meses</div>
+            <div class="layout-button" data-months="6">6 meses</div>
+            <div class="layout-button" data-months="12">12 meses</div>
+        </div>
+    </div>
+    
+    <div id="calendarContainer" class="calendar-container months-2">
+        <!-- Calendars will be dynamically generated here -->
     </div>
     
     <script>
@@ -154,6 +215,7 @@
         function initializeSelectors() {
             const monthSelect = document.getElementById('monthSelect');
             const yearSelect = document.getElementById('yearSelect');
+            const layoutButtons = document.querySelectorAll('.layout-button');
             
             // Add months
             months.forEach((month, index) => {
@@ -176,41 +238,114 @@
             // Add event listeners
             monthSelect.addEventListener('change', updateCalendar);
             yearSelect.addEventListener('change', updateCalendar);
-
-            console.log('updateCalendar ' + monthSelect + ': ' + yearSelect);
-            updateCalendar();
             
-          
+            // Add event listeners to layout buttons
+            layoutButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const numMonths = parseInt(this.getAttribute('data-months'));
+                    updateLayout(numMonths);
+                });
+            });
+
+            // Initial calendar update with 2 months (default)
+            updateLayout(2);
+        }
+
+        function updateLayout(numMonths) {
+            const container = document.getElementById('calendarContainer');
+            
+            console.log("Layout changed to:", numMonths, "months");
+            
+            // Update active button
+            document.querySelectorAll('.layout-button').forEach(button => {
+                if (parseInt(button.getAttribute('data-months')) === numMonths) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+            
+            // Update container class
+            container.className = `calendar-container months-${numMonths}`;
+            
+            // Update calendar
+            updateCalendar();
         }
 
         function updateCalendar() {
             const monthSelect = document.getElementById('monthSelect');
             const yearSelect = document.getElementById('yearSelect');
-            const month = parseInt(monthSelect.value);
-            const year = parseInt(yearSelect.value); 
-            console.log('updateCalendar ' + month + ': ' + year);
-           // Initial calendar update
-           updateCalendarn('1', month, year);
-            updateCalendarn('2', month + 1, year);
+            const startMonth = parseInt(monthSelect.value);
+            const startYear = parseInt(yearSelect.value);
+            const activeButton = document.querySelector('.layout-button.active');
+            const numMonths = parseInt(activeButton.getAttribute('data-months'));
+            
+            // Clear container
+            const container = document.getElementById('calendarContainer');
+            container.innerHTML = '';
+            
+            // Create calendars
+            for (let i = 0; i < numMonths; i++) {
+                let currentMonth = (startMonth + i) % 12;
+                let currentYear = startYear + Math.floor((startMonth + i) / 12);
+                
+                createCalendar(i + 1, currentMonth, currentYear);
+            }
+        }
+        
+        function createCalendar(index, month, year) {
+            const container = document.getElementById('calendarContainer');
+            
+            // Create calendar element
+            const calendarDiv = document.createElement('div');
+            calendarDiv.className = 'calendar';
+            
+            // Create month title
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'month';
+            titleDiv.id = `title${index}`;
+            titleDiv.textContent = `${months[month]} ${year}`;
+            calendarDiv.appendChild(titleDiv);
+            
+            // Create table
+            const table = document.createElement('table');
+            
+            // Create header row
+            const headerRow = document.createElement('tr');
+            const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            
+            days.forEach((day, i) => {
+                const th = document.createElement('th');
+                th.className = 'day' + (i >= 5 ? ' weekend' : '');
+                th.textContent = day;
+                headerRow.appendChild(th);
+            });
+            
+            table.appendChild(headerRow);
+            
+            // Create body
+            const tbody = document.createElement('tbody');
+            tbody.id = `calendarBody${index}`;
+            table.appendChild(tbody);
+            
+            calendarDiv.appendChild(table);
+            container.appendChild(calendarDiv);
+            
+            // Fill calendar
+            updateCalendarBody(index, month, year);
         }
 
-        function updateCalendarn(n, month, year) {
-            const title = document.getElementById('title' + n);
-            console.log('title' + n + ': ' + title);
-            
-
+        function updateCalendarBody(index, month, year) {
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const daysInMonth = lastDay.getDate();
-            console.log('month ' +months[month]);
-            title.innerHTML = months[month] + ' ' + year;
-
+            
             // Get day of week for the first day (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
             let firstDayOfWeek = firstDay.getDay();
             // Adjust for Monday as first day of week
             firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
-            const calendarBody = document.getElementById('calendarBody' + n);
+            const calendarBody = document.getElementById(`calendarBody${index}`);
             calendarBody.innerHTML = '';
 
             let date = 1;
@@ -242,7 +377,7 @@
         }
 
         // Initialize the calendar when the page loads
-        initializeSelectors();
+        window.onload = initializeSelectors;
     </script>
 </body>
 </html>

@@ -96,11 +96,9 @@
             text-align: center;
         }
         .months-6 .month {
-            font-size: 3vw;
             padding: 5px;
         }
         .months-12 .month {
-            font-size: 2vw;
             padding: 3px;
         }
         table {
@@ -114,12 +112,6 @@
             position: relative;
             font-size: 2.5vw;
         }
-        .months-6 th, .months-6 td {
-            font-size: 1.8vw;
-        }
-        .months-12 th, .months-12 td {
-            font-size: 1.2vw;
-        }
         th {
             background-color: #f0f0f0;
             font-weight: normal;
@@ -132,17 +124,25 @@
         }
         td .content {
             position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
             display: flex;
-            justify-content: center;
-            padding: 0 0 10px 0;
+            padding: 0;
         }
         .weekend {
             color: rgb(172, 68, 68);
             font-style: italic;
+        }
+        #position-box {
+            width: 100px;
+            height: 100px;
+            border: 1px solid #000;
+            position: relative;
+        }
+        #position-handle {
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            position: absolute;
+            cursor: move;
         }
         @media print {
             .noprint {
@@ -163,24 +163,6 @@
             .month {
                 font-size: 20px;
             }
-            .months-6 th, .months-6 td {
-                font-size: 16px;
-            }
-            .months-6 .day {
-                font-size: 12px;
-            }
-            .months-6 .month {
-                font-size: 16px;
-            }
-            .months-12 th, .months-12 td {
-                font-size: 12px;
-            }
-            .months-12 .day {
-                font-size: 10px;
-            }
-            .months-12 .month {
-                font-size: 14px;
-            }
         }
     </style>
 </head>
@@ -200,6 +182,17 @@
             <div class="layout-button" data-months="12">12 meses</div>
         </div>
     </div>
+    <div class="monthselector noprint">
+        <label for="daySize">Tamaño día:</label>
+        <input type="range" id="daySize" min="10" max="60" value="15" step="1">
+        <label for="dayWeekSize">Tamaño texto día:</label>
+        <input type="range" id="dayWeekSize" min="5" max="20" value="15" step="1">
+        <label for="monthNameSize">Tamaño mes:</label>
+        <input type="range" id="monthNameSize" min="10" max="50" value="20" step="1">
+        <div id="position-box">
+            <div id="position-handle"></div>
+        </div>
+    </div>
     
     <div id="calendarContainer" class="calendar-container months-2">
         <!-- Calendars will be dynamically generated here -->
@@ -216,6 +209,9 @@
             const monthSelect = document.getElementById('monthSelect');
             const yearSelect = document.getElementById('yearSelect');
             const layoutButtons = document.querySelectorAll('.layout-button');
+            const daySize = document.getElementById('daySize');
+            const dayWeekSize = document.getElementById('dayWeekSize');
+            const monthNameSize = document.getElementById('monthNameSize');
             
             // Add months
             months.forEach((month, index) => {
@@ -238,6 +234,9 @@
             // Add event listeners
             monthSelect.addEventListener('change', updateCalendar);
             yearSelect.addEventListener('change', updateCalendar);
+            daySize.addEventListener('input', updateDaySize);
+            dayWeekSize.addEventListener('input', updateDayWeekTextSize);
+            monthNameSize.addEventListener('input', updateMonthNameSize);
             
             // Add event listeners to layout buttons
             layoutButtons.forEach(button => {
@@ -247,8 +246,68 @@
                 });
             });
 
+            // Position selector logic
+            const positionBox = document.getElementById('position-box');
+            const positionHandle = document.getElementById('position-handle');
+            let isDragging = false;
+
+            positionHandle.addEventListener('mousedown', (e) => {
+                isDragging = true;
+            });
+
+            document.addEventListener('mouseup', (e) => {
+                isDragging = false;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const rect = positionBox.getBoundingClientRect();
+                    let x = e.clientX - rect.left;
+                    let y = e.clientY - rect.top;
+
+                    // Constrain the handle to the box
+                    x = Math.max(0, Math.min(x, rect.width - positionHandle.offsetWidth));
+                    y = Math.max(0, Math.min(y, rect.height - positionHandle.offsetHeight));
+
+                    positionHandle.style.left = `${x}px`;
+                    positionHandle.style.top = `${y}px`;
+
+                    updateDayPosition(x, y);
+                }
+            });
+
             // Initial calendar update with 2 months (default)
             updateLayout(2);
+            updateDaySize();
+            updateDayWeekTextSize();
+            updateMonthNameSize();
+        }
+
+        function updateDayPosition(x, y) {
+            const style = document.createElement('style');
+            style.innerHTML = `.content { top: ${y}px; left: ${x}px; }`;
+            document.head.appendChild(style);
+        }
+
+        function updateMonthNameSize() {
+            const monthNameSize = document.getElementById('monthNameSize').value;
+            const style = document.createElement('style');
+            style.innerHTML = `.month { font-size: ${monthNameSize}px; }`;
+            document.head.appendChild(style);
+        }
+
+        function updateDayWeekTextSize() {
+            const dayWeekSize = document.getElementById('dayWeekSize').value;
+            const style = document.createElement('style');
+            style.innerHTML = `.day { font-size: ${dayWeekSize}px; }`;
+            document.head.appendChild(style);
+        }
+
+        function updateDaySize() {
+            const daySize = document.getElementById('daySize').value;
+            const style = document.createElement('style');
+            style.innerHTML = `.content { font-size: ${daySize}px; }`;
+            document.head.appendChild(style);
         }
 
         function updateLayout(numMonths) {

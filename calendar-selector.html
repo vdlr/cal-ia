@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario</title>
+    <style id="dynamic-styles"></style>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -90,16 +91,9 @@
         .month {
             background-color: #f8f8f8;
             color: #333;
-            font-size: 5vw;
             font-weight: bold;
             padding: 10px;
             text-align: center;
-        }
-        .months-6 .month {
-            padding: 5px;
-        }
-        .months-12 .month {
-            padding: 3px;
         }
         table {
             border-collapse: collapse;
@@ -110,7 +104,6 @@
             text-align: center;
             width: 14.28%; /* 100% / 7 days */
             position: relative;
-            font-size: 2.5vw;
         }
         th {
             background-color: #f0f0f0;
@@ -124,7 +117,11 @@
         }
         td .content {
             position: absolute;
+            width: 40px;
+            height: 40px;
             display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 0;
         }
         .weekend {
@@ -136,6 +133,7 @@
             height: 100px;
             border: 1px solid #000;
             position: relative;
+            overflow: hidden; /* Prevents handle from going outside */
         }
         #position-handle {
             width: 10px;
@@ -151,17 +149,6 @@
             }
             .printmargin {
                 margin: 20;
-            }
-        }
-        @media (min-width: 400px) {
-            th, td {
-                font-size: 24px;
-            }
-            .day {
-                font-size: 15px;
-            }
-            .month {
-                font-size: 20px;
             }
         }
     </style>
@@ -186,7 +173,7 @@
         <label for="daySize">Tamaño día:</label>
         <input type="range" id="daySize" min="10" max="60" value="15" step="1">
         <label for="dayWeekSize">Tamaño texto día:</label>
-        <input type="range" id="dayWeekSize" min="5" max="20" value="15" step="1">
+        <input type="range" id="dayWeekSize" min="5" max="40" value="15" step="1">
         <label for="monthNameSize">Tamaño mes:</label>
         <input type="range" id="monthNameSize" min="10" max="50" value="20" step="1">
         <div id="position-box">
@@ -203,6 +190,29 @@
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
             'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
+
+        const dynamicStyles = {
+            month: { fontSize: '20px' },
+            day: { fontSize: '15px' },
+            content: { 
+                fontSize: '15px',
+                top: '0px',
+                left: '0px'
+            }
+        };
+
+        function applyDynamicStyles() {
+            const styleEl = document.getElementById('dynamic-styles');
+            styleEl.innerHTML = `
+                .month { font-size: ${dynamicStyles.month.fontSize}; }
+                .day { font-size: ${dynamicStyles.day.fontSize}; }
+                .content { 
+                    font-size: ${dynamicStyles.content.fontSize};
+                    top: ${dynamicStyles.content.top};
+                    left: ${dynamicStyles.content.left};
+                }
+            `;
+        }
 
         // Initialize selectors
         function initializeSelectors() {
@@ -234,9 +244,18 @@
             // Add event listeners
             monthSelect.addEventListener('change', updateCalendar);
             yearSelect.addEventListener('change', updateCalendar);
-            daySize.addEventListener('input', updateDaySize);
-            dayWeekSize.addEventListener('input', updateDayWeekTextSize);
-            monthNameSize.addEventListener('input', updateMonthNameSize);
+            daySize.addEventListener('input', (e) => {
+                dynamicStyles.content.fontSize = `${e.target.value}px`;
+                applyDynamicStyles();
+            });
+            dayWeekSize.addEventListener('input', (e) => {
+                dynamicStyles.day.fontSize = `${e.target.value}px`;
+                applyDynamicStyles();
+            });
+            monthNameSize.addEventListener('input', (e) => {
+                dynamicStyles.month.fontSize = `${e.target.value}px`;
+                applyDynamicStyles();
+            });
             
             // Add event listeners to layout buttons
             layoutButtons.forEach(button => {
@@ -265,69 +284,40 @@
                     let x = e.clientX - rect.left;
                     let y = e.clientY - rect.top;
 
-                    // Constrain the handle to the box
-                    x = Math.max(0, Math.min(x, rect.width - positionHandle.offsetWidth));
-                    y = Math.max(0, Math.min(y, rect.height - positionHandle.offsetHeight));
+                    // Constrain the handle to the box, considering the handle's size
+                    const maxX = rect.width - positionHandle.offsetWidth;
+                    const maxY = rect.height - positionHandle.offsetHeight;
+                    x = Math.max(0, Math.min(x, maxX));
+                    y = Math.max(0, Math.min(y, maxY));
 
                     positionHandle.style.left = `${x}px`;
                     positionHandle.style.top = `${y}px`;
 
-                    updateDayPosition(x, y);
+                    // Map the handle's position (in pixels) to a percentage for the content box
+                    dynamicStyles.content.left = `calc(${x / maxX * 100}% - ${x / maxX * 40}px)`;
+                    dynamicStyles.content.top = `calc(${y / maxY * 100}% - ${y / maxY * 40}px)`;
+                    applyDynamicStyles();
                 }
             });
 
-            // Initial calendar update with 2 months (default)
+            // Initial setup
             updateLayout(2);
-            updateDaySize();
-            updateDayWeekTextSize();
-            updateMonthNameSize();
-        }
-
-        function updateDayPosition(x, y) {
-            const style = document.createElement('style');
-            style.innerHTML = `.content { top: ${y}px; left: ${x}px; }`;
-            document.head.appendChild(style);
-        }
-
-        function updateMonthNameSize() {
-            const monthNameSize = document.getElementById('monthNameSize').value;
-            const style = document.createElement('style');
-            style.innerHTML = `.month { font-size: ${monthNameSize}px; }`;
-            document.head.appendChild(style);
-        }
-
-        function updateDayWeekTextSize() {
-            const dayWeekSize = document.getElementById('dayWeekSize').value;
-            const style = document.createElement('style');
-            style.innerHTML = `.day { font-size: ${dayWeekSize}px; }`;
-            document.head.appendChild(style);
-        }
-
-        function updateDaySize() {
-            const daySize = document.getElementById('daySize').value;
-            const style = document.createElement('style');
-            style.innerHTML = `.content { font-size: ${daySize}px; }`;
-            document.head.appendChild(style);
+            applyDynamicStyles();
         }
 
         function updateLayout(numMonths) {
             const container = document.getElementById('calendarContainer');
             
-            console.log("Layout changed to:", numMonths, "months");
-            
             // Update active button
             document.querySelectorAll('.layout-button').forEach(button => {
+                button.classList.remove('active');
                 if (parseInt(button.getAttribute('data-months')) === numMonths) {
                     button.classList.add('active');
-                } else {
-                    button.classList.remove('active');
                 }
             });
             
             // Update container class
             container.className = `calendar-container months-${numMonths}`;
-            
-            // Update calendar
             updateCalendar();
         }
 
@@ -339,37 +329,27 @@
             const activeButton = document.querySelector('.layout-button.active');
             const numMonths = parseInt(activeButton.getAttribute('data-months'));
             
-            // Clear container
             const container = document.getElementById('calendarContainer');
             container.innerHTML = '';
             
-            // Create calendars
             for (let i = 0; i < numMonths; i++) {
                 let currentMonth = (startMonth + i) % 12;
                 let currentYear = startYear + Math.floor((startMonth + i) / 12);
-                
                 createCalendar(i + 1, currentMonth, currentYear);
             }
         }
         
         function createCalendar(index, month, year) {
             const container = document.getElementById('calendarContainer');
-            
-            // Create calendar element
             const calendarDiv = document.createElement('div');
             calendarDiv.className = 'calendar';
             
-            // Create month title
             const titleDiv = document.createElement('div');
             titleDiv.className = 'month';
-            titleDiv.id = `title${index}`;
             titleDiv.textContent = `${months[month]} ${year}`;
             calendarDiv.appendChild(titleDiv);
             
-            // Create table
             const table = document.createElement('table');
-            
-            // Create header row
             const headerRow = document.createElement('tr');
             const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
             
@@ -382,60 +362,45 @@
             
             table.appendChild(headerRow);
             
-            // Create body
             const tbody = document.createElement('tbody');
-            tbody.id = `calendarBody${index}`;
             table.appendChild(tbody);
-            
             calendarDiv.appendChild(table);
             container.appendChild(calendarDiv);
             
-            // Fill calendar
-            updateCalendarBody(index, month, year);
+            updateCalendarBody(tbody, month, year);
         }
 
-        function updateCalendarBody(index, month, year) {
+        function updateCalendarBody(tbody, month, year) {
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const daysInMonth = lastDay.getDate();
-            
-            // Get day of week for the first day (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
             let firstDayOfWeek = firstDay.getDay();
-            // Adjust for Monday as first day of week
             firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
-            const calendarBody = document.getElementById(`calendarBody${index}`);
-            calendarBody.innerHTML = '';
-
+            tbody.innerHTML = '';
             let date = 1;
-            let html = '';
+            let rowCount = Math.ceil((firstDayOfWeek + daysInMonth) / 7);
 
-            // Create calendar rows
-            for (let i = 0; i < 6; i++) {
-                html += '<tr>';
+            for (let i = 0; i < rowCount; i++) {
+                const row = document.createElement('tr');
                 for (let j = 0; j < 7; j++) {
-                    const isWeekend = j >= 5;
-                    if (i === 0 && j < firstDayOfWeek) {
-                        // Empty cells before first day
-                        html += `<td${isWeekend ? ' class="weekend"' : ''}><div class="content"></div></td>`;
-                    } else if (date > daysInMonth) {
-                        // Empty cells after last day
-                        html += `<td${isWeekend ? ' class="weekend"' : ''}><div class="content"></div></td>`;
+                    const cell = document.createElement('td');
+                    if (i === 0 && j < firstDayOfWeek || date > daysInMonth) {
+                        // Empty cells
                     } else {
-                        html += `<td${isWeekend ? ' class="weekend"' : ''}><div class="content">${date}</div></td>`;
+                        const contentDiv = document.createElement('div');
+                        contentDiv.className = 'content';
+                        contentDiv.textContent = date;
+                        cell.appendChild(contentDiv);
                         date++;
                     }
+                    if (j >= 5) cell.classList.add('weekend');
+                    row.appendChild(cell);
                 }
-                html += '</tr>';
-                if (date > daysInMonth) {
-                    break;
-                }
+                tbody.appendChild(row);
             }
-
-            calendarBody.innerHTML = html;
         }
 
-        // Initialize the calendar when the page loads
         window.onload = initializeSelectors;
     </script>
 </body>

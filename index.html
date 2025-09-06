@@ -294,6 +294,33 @@
             color: var(--dark);
         }
 
+        /* Coming soon step style */
+        .step.coming-soon {
+            opacity: 0.7;
+            filter: grayscale(30%);
+            position: relative;
+        }
+
+        .step.coming-soon::after {
+            content: "Próximamente";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            background: var(--accent);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .step.coming-soon::before {
+            background: #94a3b8 !important;
+        }
+
         /* CTA Section */
         .cta-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -361,8 +388,18 @@
         
         @media print {
             .noprint {
-                display: none;
-                visibility: hidden;
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                width: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+            }
+            .monthselector.noprint {
+                margin: 0 !important;
+                padding: 0 !important;
+                height: 0 !important;
             }
             .printmargin {
                 margin: 20;
@@ -547,8 +584,21 @@
         .designer-actions {
             display: flex;
             gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .print-button {
+            flex: 1;
+            text-align: center;
+        }
+
+        .close-button {
+            width: auto;
+            min-width: 120px;
         }
 
         /* Responsive Design */
@@ -654,12 +704,12 @@
                     <p>Selecciona meses, años, diseño y ajusta todos los parámetros visuales según tus preferencias.</p>
                 </div>
                 <div class="step animate">
-                    <h3>Usa Herramientas IA</h3>
-                    <p>Nuestra inteligencia artificial analiza tu diseño y sugiere mejoras profesionales automáticamente.</p>
-                </div>
-                <div class="step animate">
                     <h3>Imprime y Comparte</h3>
                     <p>Descarga tu calendario en alta resolución, imprímelo o compártelo digitalmente con amigos y familia.</p>
+                </div>
+                <div class="step animate coming-soon">
+                    <h3>Usa Herramientas IA</h3>
+                    <p>Nuestra inteligencia artificial analiza tu diseño y sugiere mejoras profesionales automáticamente.</p>
                 </div>
             </div>
         </div>
@@ -710,8 +760,9 @@
                 <!-- Calendars will be dynamically generated here -->
             </div>
             
-            <div class="designer-actions">
-                <button class="btn btn-secondary" id="hide-designer">Cerrar Editor</button>
+            <div class="designer-actions noprint">
+                <button class="btn btn-primary print-button" id="print-calendar">🖨️ Imprimir Calendario</button>
+                <button class="btn btn-secondary close-button" id="hide-designer">Cerrar Editor</button>
             </div>
         </div>
     </section>
@@ -1059,6 +1110,14 @@
             // Add event listener to hide button
             if (hideButton) {
                 hideButton.addEventListener('click', hideDesigner);
+            }
+
+            // Add event listener to print button
+            const printButton = document.getElementById('print-calendar');
+            if (printButton) {
+                printButton.addEventListener('click', function() {
+                    window.print();
+                });
             }
         });
     </script>

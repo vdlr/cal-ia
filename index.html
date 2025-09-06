@@ -367,6 +367,12 @@
             .printmargin {
                 margin: 20;
             }
+            body {
+                background: white;
+                color: black;
+            }
+            
+            
         }
 
         .monthselector {
@@ -488,7 +494,7 @@
             width: 40px;
             height: 40px;
             display: flex;
-            justify-content: center;
+            justify-content: right;
             align-items: center;
             padding: 0;
         }
@@ -589,7 +595,7 @@
 </head>
 <body>
     <!-- Header -->
-    <header>
+    <header class="noprint">
         <div class="container nav-container">
             <a href="#" class="logo">Calendario-IA</a>
             <nav>
@@ -604,7 +610,7 @@
     </header>
 
     <!-- Unified Hero & Features Section -->
-    <section class="hero">
+    <section class="hero noprint">
         <div class="container">
             <div class="hero-content animate">
                 <h1>Diseña Calendarios Perfectos con Inteligencia Artificial</h1>
@@ -615,7 +621,7 @@
             </div>
 
             <!-- Features integrated into hero section -->
-            <div class="features-integrated">
+            <div class="features-integrated noprint">
                 <h2 class="section-title animate">Características Principales</h2>
                 <div class="features-grid">
                     <div class="feature-card animate">
@@ -639,7 +645,7 @@
     </section>
 
     <!-- How it Works -->
-    <section id="how-it-works" class="how-it-works">
+    <section id="how-it-works" class="how-it-works noprint">
         <div class="container">
             <h2 class="section-title animate">Cómo Funciona</h2>
             <div class="steps">
@@ -660,7 +666,7 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="cta-section">
+    <section class="cta-section noprint">
         <div class="container">
             <h2 class="animate">¿Listo para Crear tu Calendario Perfecto?</h2>
             <p class="animate">Comienza ahora y descubre cómo la IA puede transformar tu diseño de calendarios.</p>
@@ -669,9 +675,9 @@
     </section>
 
     <!-- Hidden Calendar Designer Section -->
-    <section id="calendar-designer" class="calendar-designer" style="display: none;">
+    <section id="calendar-designer" class="calendar-designer " style="display: none;">
         <div class="container">
-            <h2 class="section-title">Diseñador de Calendario</h2>
+            <h2 class="section-title noprint">Diseñador de Calendario</h2>
             
             <div class="monthselector noprint">
                 <label for="monthSelect">Mes:</label>
@@ -711,7 +717,7 @@
     </section>
 
     <!-- Footer -->
-    <footer id="contact">
+    <footer id="contact" class="noprint">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
@@ -852,6 +858,8 @@
 
         function updateLayout(numMonths) {
             const container = document.getElementById('calendarContainer');
+            const daySize = document.getElementById('daySize');
+            const dayWeekSize = document.getElementById('dayWeekSize');
             
             // Update active button
             document.querySelectorAll('.layout-button').forEach(button => {
@@ -861,9 +869,57 @@
                 }
             });
             
+            // Update daySize range based on number of months
+            const daySizeRanges = {
+                1: { min: 10, max: 80 },   // 1 month: larger range for bigger days
+                2: { min: 10, max: 56 },   // 2 months: medium range
+                6: { min: 10, max: 36 },   // 6 months: smaller range for more compact
+                12: { min: 10, max: 30 }    // 12 months: smallest range for many months
+            };
+            
+            // Update dayWeekSize range based on number of months
+            const dayWeekSizeRanges = {
+                1: { min: 10, max: 25 },   // 1 month: larger range for bigger text
+                2: { min: 8, max: 18 },    // 2 months: medium range
+                6: { min: 6, max: 13 },    // 6 months: smaller range for more compact
+                12: { min: 3, max: 8 }    // 12 months: smallest range for many months
+            };
+            
+            const daySizeRange = daySizeRanges[numMonths] || { min: 10, max: 10 };
+            const dayWeekSizeRange = dayWeekSizeRanges[numMonths] || { min: 5, max: 10 };
+            
+            // Update daySize input attributes
+            daySize.min = daySizeRange.min;
+            daySize.max = daySizeRange.max;
+            
+            // Update dayWeekSize input attributes
+            dayWeekSize.min = dayWeekSizeRange.min;
+            dayWeekSize.max = dayWeekSizeRange.max;
+            
+            // Adjust current daySize value to stay within new range
+            let currentDaySizeValue = parseInt(daySize.value);
+            if (currentDaySizeValue < daySizeRange.min) {
+                daySize.value = daySizeRange.min;
+                dynamicStyles.content.fontSize = `${daySizeRange.min}px`;
+            } else if (currentDaySizeValue > daySizeRange.max) {
+                daySize.value = daySizeRange.max;
+                dynamicStyles.content.fontSize = `${daySizeRange.max}px`;
+            }
+            
+            // Adjust current dayWeekSize value to stay within new range
+            let currentDayWeekSizeValue = parseInt(dayWeekSize.value);
+            if (currentDayWeekSizeValue < dayWeekSizeRange.min) {
+                dayWeekSize.value = dayWeekSizeRange.min;
+                dynamicStyles.day.fontSize = `${dayWeekSizeRange.min}px`;
+            } else if (currentDayWeekSizeValue > dayWeekSizeRange.max) {
+                dayWeekSize.value = dayWeekSizeRange.max;
+                dynamicStyles.day.fontSize = `${dayWeekSizeRange.max}px`;
+            }
+            
             // Update container class
             container.className = `calendar-container months-${numMonths}`;
             updateCalendar();
+            applyDynamicStyles();
         }
 
         function updateCalendar() {

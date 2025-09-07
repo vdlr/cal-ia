@@ -652,8 +652,8 @@
 
         td .content {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 10px;
+            height: 20px;
             display: flex;
             justify-content: right;
             align-items: center;
@@ -1041,8 +1041,8 @@
                     positionHandle.style.top = `${y}px`;
 
                     // Map the handle's position (in pixels) to a percentage for the content box
-                    dynamicStyles.content.left = `calc(${x / maxX * 100}% - ${x / maxX * 40}px)`;
-                    dynamicStyles.content.top = `calc(${y / maxY * 100}% - ${y / maxY * 40}px)`;
+                    dynamicStyles.content.left = `calc(${x / maxX * 100}% - ${x / maxX * 10}px)`;
+                    dynamicStyles.content.top = `calc(${y / maxY * 100}% - ${y / maxY * 20}px)`;
                     applyDynamicStyles();
                 }
             });
